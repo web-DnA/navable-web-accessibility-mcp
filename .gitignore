@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# OS / editor noise
+.DS_Store
+**/.DS_Store
+
+# Local scratch, planning drafts, feedback — do not commit
+tmp/
+
+*/temp/
+temp/
+*.log
