@@ -1,6 +1,6 @@
-# Navable MCP
+# @navable/mcp
 
-[![npm version](https://img.shields.io/npm/v/@navable-dev/mcp.svg)](https://www.npmjs.com/package/@navable-dev/mcp)
+[![npm version](https://img.shields.io/npm/v/@navable/mcp.svg)](https://www.npmjs.com/package/@navable/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node.js >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org)
 
@@ -13,7 +13,7 @@ your agent can work through autonomously.
 
 ```bash
 # 1. Install — Chromium is downloaded automatically during install
-npm install -g @navable-dev/mcp
+npm install -g @navable/mcp
 
 # 2. Start your dev server, then scan
 #    (configure your IDE — see below — and ask your agent to scan)
@@ -37,7 +37,7 @@ Add to `.cursor/mcp.json`:
   "mcpServers": {
     "navable": {
       "command": "npx",
-      "args": ["-y", "@navable-dev/mcp"],
+      "args": ["-y", "@navable/mcp"],
       "env": {
         "NAVABLE_PROJECT_ROOT": "/absolute/path/to/your/project"
       }
@@ -58,7 +58,7 @@ Add to `.vscode/mcp.json`:
   "servers": {
     "navable": {
       "command": "npx",
-      "args": ["-y", "@navable-dev/mcp"]
+      "args": ["-y", "@navable/mcp"]
     }
   }
 }
@@ -67,7 +67,7 @@ Add to `.vscode/mcp.json`:
 ### Claude Code
 
 ```bash
-claude mcp add navable -- npx -y @navable-dev/mcp
+claude mcp add navable -- npx -y @navable/mcp
 ```
 
 ## Available Tools
