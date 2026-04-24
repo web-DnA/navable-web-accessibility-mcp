@@ -1,6 +1,6 @@
 {
   "name": "@navable/mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Free, real-browser accessibility scanner for AI coding agents. Scans localhost with Playwright + axe-core, returns WCAG 2.1 Level A + AA violations with fix plans.",
   "type": "module",
   "bin": {

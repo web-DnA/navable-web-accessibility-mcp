@@ -9,6 +9,7 @@
 
 import { execFileSync } from 'child_process';
 import { createRequire } from 'module';
+import { dirname, join } from 'path';
 import { chromium, type Browser, type Page } from 'playwright';
 import { loadConfig } from './config.js';
 
@@ -20,12 +21,13 @@ let browser: Browser | null = null;
 
 /**
  * Install Chromium via Playwright's own CLI.
- * Resolves the CLI path from the installed playwright package so it works
+ * Finds cli.js relative to the playwright package directory so it works
  * in MCP server environments where npx may not be on the PATH.
  */
 function installChromium(): void {
   const require = createRequire(import.meta.url);
-  const playwrightCli = require.resolve('playwright/cli');
+  const playwrightDir = dirname(require.resolve('playwright/package.json'));
+  const playwrightCli = join(playwrightDir, 'cli.js');
   execFileSync(process.execPath, [playwrightCli, 'install', 'chromium'], {
     stdio: 'inherit',
   });
