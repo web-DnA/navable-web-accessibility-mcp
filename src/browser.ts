@@ -25,12 +25,14 @@ let browser: Browser | null = null;
  * in MCP server environments where npx may not be on the PATH.
  */
 function installChromium(): void {
+  process.stderr.write('[navable] Chromium not found — downloading (~150 MB, one-time install)…\n');
   const require = createRequire(import.meta.url);
   const playwrightDir = dirname(require.resolve('playwright/package.json'));
   const playwrightCli = join(playwrightDir, 'cli.js');
   execFileSync(process.execPath, [playwrightCli, 'install', 'chromium'], {
-    stdio: 'inherit',
+    stdio: ['ignore', 'inherit', 'inherit'],
   });
+  process.stderr.write('[navable] Chromium installed successfully.\n');
 }
 
 /**
