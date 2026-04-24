@@ -8,6 +8,7 @@
  */
 
 import { execFileSync } from 'child_process';
+import { createRequire } from 'module';
 import { chromium, type Browser, type Page } from 'playwright';
 import { loadConfig } from './config.js';
 
@@ -16,6 +17,19 @@ import { loadConfig } from './config.js';
 // ---------------------------------------------------------------------------
 
 let browser: Browser | null = null;
+
+/**
+ * Install Chromium via Playwright's own CLI.
+ * Resolves the CLI path from the installed playwright package so it works
+ * in MCP server environments where npx may not be on the PATH.
+ */
+function installChromium(): void {
+  const require = createRequire(import.meta.url);
+  const playwrightCli = require.resolve('playwright/cli');
+  execFileSync(process.execPath, [playwrightCli, 'install', 'chromium'], {
+    stdio: 'inherit',
+  });
+}
 
 /**
  * Return the shared browser instance, launching it on first call.
@@ -34,9 +48,7 @@ export async function getBrowser(): Promise<Browser> {
     if (msg.includes('Executable doesn') || msg.includes('browserType.launch')) {
       // Auto-install Chromium and retry once
       try {
-        execFileSync('npx', ['playwright', 'install', 'chromium'], {
-          stdio: 'inherit',
-        });
+        installChromium();
       } catch {
         throw new Error(
           'Playwright Chromium browser is not installed and auto-install failed. ' +
