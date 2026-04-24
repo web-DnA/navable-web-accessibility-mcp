@@ -1,4 +1,4 @@
-# @navable/mcp
+# Navable MCP
 
 [![npm version](https://img.shields.io/npm/v/@navable/mcp.svg)](https://www.npmjs.com/package/@navable/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -11,16 +11,12 @@ your agent can work through autonomously.
 
 ## Quick Start
 
-```bash
-# 1. Install — Chromium is downloaded automatically during install
-npm install -g @navable/mcp
+1. Add the MCP config for your editor (see below)
+2. Start your dev server
+3. Ask your agent: _"scan http://localhost:3000 for accessibility issues"_
 
-# 2. Start your dev server, then scan
-#    (configure your IDE — see below — and ask your agent to scan)
-```
-
-> **Chromium installs automatically** when you run `npm install`. No extra step needed. If the
-> automatic download fails (e.g. in a restricted network or CI environment), install it manually:
+> **Chromium installs automatically** on the first scan (~150 MB one-time download). No extra step
+> needed. If auto-install fails (e.g. restricted network), install manually:
 >
 > ```bash
 > npx playwright install chromium
@@ -177,8 +173,8 @@ Set **`NAVABLE_PROJECT_ROOT`** in the MCP server environment (see Cursor example
 ## Requirements
 
 - **Node.js** >= 20
-- **Playwright Chromium** — downloaded automatically on `npm install`. If needed, install manually
-  with `npx playwright install chromium`.
+- **Playwright Chromium** — downloaded automatically on first scan. If auto-install fails, run
+  `npx playwright install chromium` manually.
 
 ## Contributing / development
 

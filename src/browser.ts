@@ -7,6 +7,7 @@
  * Call `getBrowser()` to lazily initialise, `closeBrowser()` on shutdown.
  */
 
+import { execFileSync } from 'child_process';
 import { chromium, type Browser, type Page } from 'playwright';
 import { loadConfig } from './config.js';
 
@@ -18,7 +19,7 @@ let browser: Browser | null = null;
 
 /**
  * Return the shared browser instance, launching it on first call.
- * Throws a descriptive error if Chromium is not installed.
+ * Auto-installs Chromium if it is missing (common with npx).
  */
 export async function getBrowser(): Promise<Browser> {
   if (browser?.isConnected()) return browser;
@@ -31,14 +32,26 @@ export async function getBrowser(): Promise<Browser> {
   } catch (err) {
     const msg = (err as Error).message ?? '';
     if (msg.includes('Executable doesn') || msg.includes('browserType.launch')) {
-      throw new Error(
-        'Playwright Chromium browser is not installed. ' +
-          'Run this command in your terminal to install it:\n\n' +
-          '  npx playwright install chromium\n\n' +
-          'This downloads the headless Chromium binary (~150 MB) needed for accessibility scans.',
-      );
+      // Auto-install Chromium and retry once
+      try {
+        execFileSync('npx', ['playwright', 'install', 'chromium'], {
+          stdio: 'inherit',
+        });
+      } catch {
+        throw new Error(
+          'Playwright Chromium browser is not installed and auto-install failed. ' +
+            'Run this command in your terminal to install it manually:\n\n' +
+            '  npx playwright install chromium\n\n' +
+            'This downloads the headless Chromium binary (~150 MB) needed for accessibility scans.',
+        );
+      }
+      browser = await chromium.launch({
+        headless: true,
+        args: ['--disable-gpu', '--disable-dev-shm-usage', '--no-sandbox'],
+      });
+    } else {
+      throw err;
     }
-    throw err;
   }
 
   return browser;
