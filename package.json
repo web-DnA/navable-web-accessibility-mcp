@@ -38,7 +38,7 @@
   "bugs": {
     "url": "https://github.com/web-DnA/navable-web-accessibility-mcp/issues"
   },
-  "homepage": "https://github.com/web-DnA/navable-web-accessibility-mcp#readme",
+  "homepage": "https://navable.io/",
   "engines": {
     "node": ">=20.0.0"
   },

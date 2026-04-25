@@ -4,6 +4,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node.js >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org)
 
+Part of [**navable.io**](https://navable.io/) — open-source accessibility tools for development
+teams.
+
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that gives AI coding
 agents real-browser accessibility scanning. Scans localhost pages with Playwright + axe-core,
 returns WCAG 2.1 Level A + AA violations with EN 301 549 mapping, and generates structured fix plans
@@ -170,6 +173,30 @@ Create a `.navable.json` in your project root to customize behavior:
 Set **`NAVABLE_PROJECT_ROOT`** in the MCP server environment (see Cursor example above) so
 `.navable-plan.json` resolves to your app’s repo root when the server’s cwd is not the project.
 
+## Recommended: Agent Skills
+
+For a deterministic, repeatable workflow, pair this MCP server with
+[**@navable/skills**](https://github.com/web-DnA/navable-web-accessibility-skills) — pre-built agent
+skills that guide your AI agent through scanning, fixing, reviewing, and auditing accessibility
+issues step by step.
+
+The skills ensure your agent follows a consistent process (scan → plan → fix → verify) instead of
+improvising. Copy them into your project's skills folder:
+
+```bash
+# VS Code (Copilot)
+cp -r skills/* .github/skills/
+
+# Cursor
+cp -r skills/* .agents/skills/
+
+# Claude Code
+cp -r skills/* .claude/skills/
+```
+
+See the [skills repository](https://github.com/web-DnA/navable-web-accessibility-skills) for
+details.
+
 ## Requirements
 
 - **Node.js** >= 20
@@ -178,7 +205,8 @@ Set **`NAVABLE_PROJECT_ROOT`** in the MCP server environment (see Cursor example
 
 ## Contributing / development
 
-Contributions are welcome! Please open an issue first to discuss what you'd like to change.
+We love getting feedback and contributions. Found a bug? Have an idea for a new fix pattern or ARIA
+guide? Open an issue or send a PR — we'll review it quickly.
 
 ```bash
 git clone https://github.com/web-DnA/navable-web-accessibility-mcp.git
@@ -190,4 +218,4 @@ npm run dev   # watch mode
 
 ## License
 
-MIT
+MIT — [navable.io](https://navable.io/)
