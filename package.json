@@ -1,7 +1,7 @@
 {
   "name": "@navable/mcp",
-  "version": "0.1.5",
-  "description": "Free, real-browser accessibility scanner for AI coding agents. Scans localhost with Playwright + axe-core, returns WCAG 2.1 Level A + AA violations with fix plans.",
+  "version": "0.2.0",
+  "description": "Free, real-browser accessibility scanner for AI coding agents. Scans localhost with Playwright + axe-core (and optionally Pa11y/HTMLCS), returns WCAG 2.1 Level A + AA violations with fix plans.",
   "type": "module",
   "bin": {
     "navable-mcp": "./dist/index.js"
@@ -13,8 +13,11 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "npm run build && node test/smoke/smoke-test.mjs",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
     "mcp",
@@ -39,17 +42,24 @@
     "url": "https://github.com/web-DnA/navable-web-accessibility-mcp/issues"
   },
   "homepage": "https://navable.io/",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.10.0",
     "@modelcontextprotocol/sdk": "^1.12.0",
+    "pa11y": "^9.1.1",
     "playwright": "^1.50.0",
+    "puppeteer-core": "^24.42.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.7.0"
+    "@types/pa11y": "^5.3.7",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.5"
   }
 }

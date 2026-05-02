@@ -104,6 +104,9 @@ const scanSchema = z
   })
   .passthrough();
 
+/** Exported for unit testing — verifies that merged axe + htmlcs scans parse. */
+export const _scanSchema = scanSchema;
+
 // ---------------------------------------------------------------------------
 // Priority helpers
 // ---------------------------------------------------------------------------
@@ -245,7 +248,12 @@ export function registerGenerateFixPlan(server: McpServer): void {
           (c): c is { sc: string; en301549: string } =>
             typeof c.sc === 'string' && typeof c.en301549 === 'string',
         );
-        const en301549 = wcagCriteria[0]?.en301549 ?? getForAxeRule(v.id)[0]?.en301549 ?? '';
+        // Prefer the pre-populated WCAG mapping (works for axe + htmlcs).
+        // Fall back to axe-rule lookup only for axe-sourced rows.
+        const source = (v as { source?: string }).source;
+        const en301549 =
+          wcagCriteria[0]?.en301549 ??
+          (source === 'htmlcs' ? '' : (getForAxeRule(v.id)[0]?.en301549 ?? ''));
 
         return {
           id: `fix-${index + 1}`,
