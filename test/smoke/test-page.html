@@ -1,0 +1,54 @@
+<!-- Intentionally bad accessibility for smoke-testing the scanner.
+     Each violation is labeled with the WCAG SC it triggers. -->
+<!doctype html>
+<html>
+  <!-- ^^ missing lang attribute → 3.1.1 (axe: html-has-lang, htmlcs: H57.2) -->
+  <head>
+    <meta charset="utf-8" />
+    <title>Navable scanner test page</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 1rem;
+      }
+      .low-contrast {
+        color: #aaa;
+        background: #fff;
+      } /* contrast ~2.3:1 → 1.4.3 */
+      .btn {
+        padding: 0.5rem 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Test page with known a11y violations</h1>
+
+    <!-- 1.1.1 Non-text content: missing alt -->
+    <img src="https://placehold.co/100x100" />
+
+    <!-- 1.3.1 Info & relationships: form input with no label -->
+    <form>
+      <input type="email" id="email" placeholder="email" />
+      <button class="btn" type="submit">Send</button>
+    </form>
+
+    <!-- 4.1.2 Name, role, value: button with no accessible name -->
+    <button class="btn" aria-label=""></button>
+
+    <!-- 1.4.3 Contrast (minimum) -->
+    <p class="low-contrast">This text has insufficient contrast against the background.</p>
+
+    <!-- 2.4.4 Link purpose: empty link -->
+    <a href="/somewhere"></a>
+
+    <!-- 1.3.1: deprecated align attribute (HTMLCS-only typically) -->
+    <table align="center">
+      <tr>
+        <td>Row</td>
+      </tr>
+    </table>
+
+    <!-- 3.3.2 / 4.1.2: iframe without title -->
+    <iframe src="about:blank" width="200" height="100"></iframe>
+  </body>
+</html>

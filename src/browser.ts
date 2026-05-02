@@ -102,6 +102,14 @@ export async function navigateTo(page: Page, url: string): Promise<void> {
 }
 
 /**
+ * Path to the Chromium binary that Playwright manages. Pa11y (puppeteer-core)
+ * reuses this so we don't have to download a second browser.
+ */
+export function getChromiumExecutablePath(): string {
+  return chromium.executablePath();
+}
+
+/**
  * Gracefully close the browser. Safe to call multiple times.
  */
 export async function closeBrowser(): Promise<void> {

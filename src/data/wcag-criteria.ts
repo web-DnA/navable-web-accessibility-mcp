@@ -1878,6 +1878,12 @@ export function getForAxeRule(ruleId: string): WcagCriterion[] {
   return getAllCriteria().filter(c => c.axeRules.includes(ruleId) && !c.removed);
 }
 
+/** Lookup by success criterion number, e.g. "1.3.1". Returns undefined if not found or removed. */
+export function getCriterionBySc(sc: string): WcagCriterion | undefined {
+  const c = WCAG_CRITERIA[sc];
+  return c && !c.removed ? c : undefined;
+}
+
 /** Get criteria introduced in a specific WCAG version */
 export function getByVersion(version: WcagVersion): WcagCriterion[] {
   return getAllCriteria().filter(c => c.version === version);

@@ -24,6 +24,10 @@ export interface NavableConfig {
   axeTags?: string[];
   /** axe-core rule IDs to skip */
   axeDisableRules?: string[];
+  /** Engines to run during scans (default: ['axe']) */
+  engines?: ('axe' | 'htmlcs')[];
+  /** HTMLCS (Pa11y) codes to ignore, e.g. "WCAG2AA.Principle1.Guideline1_3.1_3_1.H42.2" */
+  htmlcsIgnore?: string[];
   /** WCAG conformance level to target */
   wcagLevel?: 'A' | 'AA' | 'AAA';
 }
@@ -72,6 +76,20 @@ export async function loadConfig(): Promise<NavableConfig> {
       ...(Array.isArray(obj.axeTags) ? { axeTags: obj.axeTags as string[] } : {}),
       ...(Array.isArray(obj.axeDisableRules)
         ? { axeDisableRules: obj.axeDisableRules as string[] }
+        : {}),
+      ...(Array.isArray(obj.engines)
+        ? {
+            engines: (obj.engines as unknown[]).filter(
+              (e): e is 'axe' | 'htmlcs' => e === 'axe' || e === 'htmlcs',
+            ),
+          }
+        : {}),
+      ...(Array.isArray(obj.htmlcsIgnore)
+        ? {
+            htmlcsIgnore: (obj.htmlcsIgnore as unknown[]).filter(
+              (s): s is string => typeof s === 'string',
+            ),
+          }
         : {}),
       ...(typeof obj.waitUntil === 'string' &&
       ['load', 'domcontentloaded', 'networkidle', 'commit'].includes(obj.waitUntil)

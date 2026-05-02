@@ -8,9 +8,9 @@ Part of [**navable.io**](https://navable.io/) — open-source accessibility tool
 teams.
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that gives AI coding
-agents real-browser accessibility scanning. Scans localhost pages with Playwright + axe-core,
-returns WCAG 2.1 Level A + AA violations with EN 301 549 mapping, and generates structured fix plans
-your agent can work through autonomously.
+agents real-browser accessibility scanning. Scans localhost pages with Playwright + axe-core (and
+optionally Pa11y/HTMLCS as a second engine), returns WCAG 2.1 Level A + AA violations with EN 301
+549 mapping, and generates structured fix plans your agent can work through autonomously.
 
 ## Quick Start
 
@@ -75,13 +75,16 @@ claude mcp add navable -- npx -y @navable/mcp
 
 Scans a URL for WCAG 2.1 Level A + AA accessibility violations.
 
-| Input     | Description                                                                                                                                                                                                                                        |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`     | Full URL to scan (e.g. `http://localhost:3000`)                                                                                                                                                                                                    |
-| `tags`    | axe-core rule tags to include (optional)                                                                                                                                                                                                           |
-| `include` | CSS selectors to limit scan scope (optional)                                                                                                                                                                                                       |
-| `exclude` | CSS selectors to exclude (optional)                                                                                                                                                                                                                |
-| `compact` | **`true` (default)** — smaller JSON: omits `description`, `helpUrl`, `wcag` tags, `failureSummary`; `wcagCriteria` keeps only `sc` and `en301549`; HTML snippets capped at 120 chars; no pretty-print. Set `false` for the previous verbose shape. |
+> **By default, only axe-core runs.** Pa11y/HTMLCS is opt-in — see `engines` below.
+
+| Input     | Description                                                                                                                                                                                                                                               |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`     | Full URL to scan (e.g. `http://localhost:3000`)                                                                                                                                                                                                           |
+| `tags`    | axe-core rule tags to include (optional)                                                                                                                                                                                                                  |
+| `include` | CSS selectors to limit scan scope (optional)                                                                                                                                                                                                              |
+| `exclude` | CSS selectors to exclude (optional)                                                                                                                                                                                                                       |
+| `engines` | Engines to run. Default: `["axe"]` — only axe-core runs. Pass `["axe", "htmlcs"]` to also run Pa11y/HTMLCS. Crossover findings are deduped server-side and tagged `alsoFlaggedBy: ["htmlcs"]`. Adds ~2–4 s wall-clock per scan. See _Scan engines_ below. |
+| `compact` | **`true` (default)** — smaller JSON: omits `description`, `helpUrl`, `wcag` tags, `failureSummary`; `wcagCriteria` keeps only `sc` and `en301549`; HTML snippets capped at 120 chars; no pretty-print. Set `false` for the previous verbose shape.        |
 
 **Workflow:** The response includes a **`scanId`**. Pass it to `generate_fix_plan` instead of
 pasting the full scan object — this avoids MCP client serialization issues and keeps chats smaller.
@@ -157,6 +160,8 @@ Create a `.navable.json` in your project root to customize behavior:
   "waitUntil": "load",
   "axeTags": ["wcag2a", "wcag21a", "wcag2aa", "wcag21aa"],
   "axeDisableRules": [],
+  "engines": ["axe"],
+  "htmlcsIgnore": [],
   "wcagLevel": "AA"
 }
 ```
@@ -168,7 +173,89 @@ Create a `.navable.json` in your project root to customize behavior:
 | `waitUntil`       | `"load"`                                       | Playwright wait strategy (`load`, `domcontentloaded`, `networkidle`, `commit`) |
 | `axeTags`         | `["wcag2a", "wcag21a", "wcag2aa", "wcag21aa"]` | axe-core tags to include                                                       |
 | `axeDisableRules` | `[]`                                           | axe-core rule IDs to skip                                                      |
+| `engines`         | `["axe"]`                                      | Engines to run. Add `"htmlcs"` to also run Pa11y/HTMLCS as a second engine     |
+| `htmlcsIgnore`    | `[]`                                           | HTMLCS codes to suppress (see _Pa11y / HTMLCS noise reduction_ below)          |
 | `wcagLevel`       | `"AA"`                                         | Target WCAG conformance level                                                  |
+
+### Pa11y / HTMLCS as a second engine
+
+**Pa11y does not run by default.** A plain `run_accessibility_scan({ url })` call — and the default
+agent workflow — uses axe-core only. Pa11y/HTMLCS runs only when you opt in via the `engines`
+parameter or `.navable.json`.
+
+#### When to use both engines
+
+| Use case                                               | Recommended                                   |
+| ------------------------------------------------------ | --------------------------------------------- |
+| Iterative fix loops (scan → fix → re-scan)             | `["axe"]` (default) — fast, low token cost    |
+| One-shot compliance audit / BFSG / EN 301 549 sign-off | `["axe", "htmlcs"]` — cross-confirms findings |
+| User explicitly asks for thorough / dual-engine scan   | `["axe", "htmlcs"]`                           |
+
+#### How to enable Pa11y
+
+**Per scan** — pass `engines` to the tool:
+
+```
+run_accessibility_scan({ url: "http://localhost:3000", engines: ["axe", "htmlcs"] })
+```
+
+**Always on** — add to `.navable.json` in your project root:
+
+```json
+{
+  "engines": ["axe", "htmlcs"]
+}
+```
+
+#### How results change with both engines
+
+When `engines` includes `"htmlcs"`, Pa11y runs in parallel with axe-core and shares Playwright's
+Chromium binary (no extra download). Crossover findings are deduped server-side with a deliberate
+bias toward false negatives over false positives — ambiguous matches are kept as separate entries
+rather than collapsed. The dedup uses a confidence ladder, all gated on **same WCAG SC**:
+
+1. **Full selector match** (after normalizing `html > body >` prefixes and whitespace) + loose HTML
+   compare (200-char prefix, whitespace-collapsed, lowercased).
+2. **Strict suffix match** — one selector is the tail of the other, with `>` immediately before the
+   boundary (e.g. axe `section:nth-child(3) > p` matches HTMLCS
+   `#root > main > section:nth-child(3) > p`) + loose HTML compare.
+3. **Attribute-stripped suffix match** (axe `button[type="button"]` vs HTMLCS `button`) + **strict**
+   (full-string) HTML equality. Distinct elements like `input[type="checkbox"]` and
+   `input[type="radio"]` collapse to the same stripped selector, so HTML must match exactly.
+4. **Last-3-segment fingerprint match** + **positional discriminator** (`:nth-`, `#id`, `.class`, or
+   `[…]` somewhere in the fingerprint) + loose HTML compare. The discriminator gate prevents false
+   merges in repeating layouts (`ul > li > a` lists, grids).
+
+Survivors:
+
+- **Crossover-confirmed**: kept as the axe entry, tagged with `alsoFlaggedBy: ["htmlcs"]`.
+- **HTMLCS-only**: kept with `source: "htmlcs"`, plus `helpUrl` (WCAG _Understanding_ doc) and a
+  one-sentence `developerNote` to give agents enough context to act on the cryptic HTMLCS codes.
+
+> **Same-element overlaps under different WCAG criteria are kept separate.** axe and HTMLCS often
+> map the same element to different success criteria (e.g. a `<select>` with no label may surface as
+> SC 3.3.2 _and_ SC 4.1.2 _and_ SC 1.3.1). Each is a real audit finding and dedup never collapses
+> across SCs — that would lose traceability for compliance reporting. The `scan-accessibility` and
+> `fix-accessibility` skills include guidance to **group plan items by DOM element** so the agent
+> applies one HTML edit per element, then marks all related fix IDs resolved at once. Without this
+> grouping, an agent may edit the same element repeatedly and risk one fix undoing another.
+
+HTMLCS often emits advisory "Check that…" warnings intended for human auditors. They aren't useful
+for an AI agent and inflate token cost. Suppress them via `htmlcsIgnore`. Common candidates:
+
+```json
+{
+  "engines": ["axe", "htmlcs"],
+  "htmlcsIgnore": [
+    "WCAG2AA.Principle1.Guideline1_3.1_3_1.H49.AlignAttr",
+    "WCAG2AA.Principle2.Guideline2_4.2_4_1.H64.1",
+    "WCAG2AA.Principle1.Guideline1_3.1_3_1.H42.2"
+  ]
+}
+```
+
+Find more codes to suppress in your scan output — any HTMLCS `id` whose `help` text starts with
+“Check that…” is a likely candidate.
 
 Set **`NAVABLE_PROJECT_ROOT`** in the MCP server environment (see Cursor example above) so
 `.navable-plan.json` resolves to your app’s repo root when the server’s cwd is not the project.
