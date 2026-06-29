@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+### Changed
+
+- **Requires Node >=22.12.** Minimum runtime raised from Node 20 to satisfy puppeteer-core 25.
+- **Dependency upgrades.** `@modelcontextprotocol/sdk` ^1.12 → ^1.29, `playwright` ^1.50 → 1.61.0,
+  `@axe-core/playwright` ^4.10 → 4.11.3, `puppeteer-core` ^24.42 → 25.2.0, `zod` ^3.24 → ^4.4
+  (SDK 1.29 supports zod 4), plus `typescript` ^6.0, `vitest` ^4.1.9, and `@types/node` 26.
+
 ## 0.2.0
 
 ### Added
